@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "assignees": ["ecraig12345"],
+  "dependencyDashboard": true,
+  "labels": ["renovate"],
+
+  "packageRules": [
+    {
+      "groupName": "devDependency updates",
+      "matchDepTypes": ["devDependencies"],
+      "schedule": ["before 3am on the first day of the month"]
+    }
+  ]
+}
