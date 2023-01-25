@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2019"],
+    "module": "CommonJS",
+    "strict": true,
+    "noUnusedLocals": true,
+    "checkJs": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["index.js", "index.test.js"]
+}
