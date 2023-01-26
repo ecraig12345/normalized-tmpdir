@@ -20,13 +20,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js 14
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - run: yarn --frozen-lockfile
+
+      - run: yarn format:check
 
       - run: yarn build
 
