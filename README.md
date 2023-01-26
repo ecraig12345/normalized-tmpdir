@@ -36,6 +36,8 @@ The function accepts an options object:
 
 - `console?: boolean | { warn: typeof console['warn'] }`: By default, the library does not log warnings if normalization fails. If this option is true, log warnings to the default console. If a console object is provided, use it for logging.
 
+To avoid potentially doing the Windows normalization on every call, the calculated full path is cached.
+
 #### Example: Using with Jest console mocks
 
 If you have Jest tests that mock the console methods, but you want errors from `normalizedTmpdir` to display anyway (for easier debugging), you can do the following:
