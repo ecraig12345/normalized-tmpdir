@@ -1,4 +1,4 @@
-const cp = require('child_process');
+const child_process = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -63,15 +63,15 @@ function expandShortPath(shortPath) {
         //                    C:\Users\verylongusername
         // (possibly with one or more letters at the start indicating file/dir attributes)
         // But it will only expand the last segment in the path, so we need to iterate through.
-        // Use quotes to handle spaces or special characters.
         const partialShortPath = segments.slice(0, i + 1).join('\\');
-        const expandedMatch = cp
-          .spawnSync('attrib.exe', [`"${partialShortPath}"`])
+        const attribResult = child_process
+          .spawnSync('attrib.exe', [partialShortPath])
           .stdout.toString()
-          .trim()
-          // attrib doesn't exit with an error code for bad paths, so check for errors like:
-          // File not found - C:\badname
-          .match(/(?<!- )[a-z]:\\.*/i);
+          .trim();
+
+        // attrib doesn't exit with an error code for bad paths, so check for errors like:
+        // File not found - C:\badname
+        const expandedMatch = attribResult.match(/(?<!- )[a-z]:\\.*/i);
 
         if (
           expandedMatch &&

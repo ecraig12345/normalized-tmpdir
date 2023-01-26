@@ -1,8 +1,9 @@
-const { describe, it, jest, afterEach, expect } = require('@jest/globals');
+const { describe, it, jest, afterEach, expect, beforeAll, afterAll } = require('@jest/globals');
 const child_process = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const rimraf = require('rimraf').sync;
 
 const { expandShortPath, normalizedTmpdir, clearCache } =
   /** @type {import('./index.d') & { clearCache: () => void }} */ (require('./index'));
@@ -24,12 +25,16 @@ const throwError = () => {
   throw new Error('Unexpected call');
 };
 
+/** Emulate the actual result format of `attrib` */
 const attribResult = (/** @type {string} */ str) =>
   /** @type {*} */ ({ stdout: ' '.repeat(19) + str + '\r\n' });
 
 function windowsMocks() {
-  jest.spyOn(path, 'dirname').mockImplementation(path.win32.dirname);
-  jest.spyOn(path, 'basename').mockImplementation(path.win32.basename);
+  if (os.platform() !== 'win32') {
+    // mocking these on windows causes an infinite loop
+    jest.spyOn(path, 'dirname').mockImplementation(path.win32.dirname);
+    jest.spyOn(path, 'basename').mockImplementation(path.win32.basename);
+  }
 
   return {
     spawnSync: jest.spyOn(child_process, 'spawnSync').mockImplementation(throwError),
@@ -45,6 +50,17 @@ function windowsMocks() {
 function throwMocks() {
   const mocks = windowsMocks();
   Object.values(mocks).forEach((mock) => mock.mockImplementation(throwError));
+}
+
+/** Windows only: get the actual short name of a file/directory */
+function getShortName(/** @type {string} */ dir) {
+  const res = child_process.spawnSync('cmd', ['/s', '/c', `for %A in ("${dir}") do @echo %~sA`], {
+    shell: true,
+  });
+  if (res.status !== 0) {
+    throw new Error(`Could not get short name of ${dir}: ${res.stderr.toString()}`);
+  }
+  return res.stdout.toString().trim();
 }
 
 describe('expandShortPath', () => {
@@ -119,6 +135,64 @@ describe('expandShortPath', () => {
     expect(expandShortPath(paths.homeWeirdShortTemp)).toBe(paths.homeWeirdLongTemp);
     expect(mocks.spawnSync).toHaveBeenCalledTimes(2);
   });
+
+  it('returns false if "attrib" returns an error', () => {
+    const mocks = windowsMocks();
+    mocks.spawnSync.mockImplementation(
+      () => /** @type {*} */ ({ stdout: `File not found - D:\\whatever` })
+    );
+
+    expect(expandShortPath(paths.weirdShortTemp)).toBe(false);
+    expect(mocks.spawnSync).toHaveBeenCalledTimes(1);
+  });
+
+  const windowsDescribe = os.platform() === 'win32' ? describe : describe.skip;
+  windowsDescribe('windows (real filesystem)', () => {
+    let testRoot = '';
+    let tempDirs = /** @type {string[]} */ ([]);
+
+    beforeAll(() => {
+      testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'normalized-tmpdir-'));
+    });
+
+    afterAll(() => {
+      rimraf(testRoot);
+    });
+
+    afterEach(() => {
+      tempDirs.forEach((dir) => rimraf(dir));
+      tempDirs = [];
+    });
+
+    // test home directory expansion for real if possible
+    (/^[a-z]:\\Users\\[^~\\]{9,}$/.test(os.homedir()) ? it : it.skip)(
+      'expands short home directory',
+      () => {
+        const spawnSpy = jest.spyOn(child_process, 'spawnSync');
+        const shortName = getShortName(os.homedir());
+        expect(shortName).toMatch(/~/);
+        expect(expandShortPath(shortName)).toBe(os.homedir());
+        expect(spawnSpy).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([
+      { long: 'foo bar baz', short: 'FOOBAR~1' },
+      { long: 'foo^bar^baz', short: 'FOO^BA~1' },
+      { long: 'foo%bar%baz', short: 'FOO%BA~1' },
+      // this relies on the first directory already being created
+      { long: 'foo bar baz\\very long name', short: 'FOOBAR~1\\VERYLO~1' },
+    ])('expands "$short" ("$long") using attrib', ({ long, short }) => {
+      const longPath = path.join(testRoot, long);
+      const shortPath = path.join(testRoot, short);
+      fs.mkdirSync(longPath);
+      expect(fs.existsSync(shortPath)).toBe(true);
+
+      const spawnSpy = jest.spyOn(child_process, 'spawnSync');
+      expect(expandShortPath(shortPath)).toBe(longPath);
+      expect(spawnSpy).toHaveBeenCalled();
+    });
+  });
 });
 
 describe('normalizedTmpdir', function () {
@@ -153,6 +227,20 @@ describe('normalizedTmpdir', function () {
     expect(normalizedTmpdir()).toEqual(paths.longTemp);
     // should not call it again due to cache
     expect(mocks.homedir).toHaveBeenCalledTimes(1);
+  });
+
+  it('on failure, does not recalculate', () => {
+    const mocks = windowsMocks();
+    // cause homedir comparison to fail
+    mocks.statSync.mockImplementationOnce(() => /** @type {*} */ ({ ino: 2 }));
+
+    expect(normalizedTmpdir()).toBe(paths.shortTemp);
+    expect(mocks.spawnSync).toHaveBeenCalled(); // verify it went to failure path
+
+    // try again and verify it doesn't call spawnSync again
+    mocks.spawnSync.mockClear();
+    expect(normalizedTmpdir()).toBe(paths.shortTemp);
+    expect(mocks.spawnSync).not.toHaveBeenCalled();
   });
 
   it('on failure, does not log by default', () => {
