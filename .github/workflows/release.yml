@@ -29,6 +29,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
+      - run: yarn --frozen-lockfile
+
       - name: Create release PR or publish to npm
         uses: changesets/action@v1
         with:
