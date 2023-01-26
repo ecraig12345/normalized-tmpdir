@@ -18,7 +18,6 @@ const paths = {
   veryWeirdLongTemp: 'D:\\VeryLongName\\ExtraStuff\\Temp',
   homeWeirdShortTemp: 'C:\\Users\\VERYLO~1\\EXTRAS~1\\Temp',
   homeWeirdLongTemp: 'C:\\Users\\VeryLongName\\ExtraStuff\\Temp',
-  network: '\\\\server\\share',
 };
 const noOp = (/** @type {*} */ val) => val;
 const throwError = () => {
@@ -50,6 +49,7 @@ function windowsMocks() {
 function throwMocks() {
   const mocks = windowsMocks();
   Object.values(mocks).forEach((mock) => mock.mockImplementation(throwError));
+  jest.spyOn(os, 'platform').mockImplementation(() => 'win32');
 }
 
 /** Windows only: get the actual short name of a file/directory */
@@ -68,15 +68,24 @@ describe('expandShortPath', () => {
     jest.restoreAllMocks();
   });
 
+  it('returns false for non-windows platforms', () => {
+    throwMocks();
+    jest.spyOn(os, 'platform').mockImplementation(() => 'linux');
+    expect(expandShortPath(paths.shortTemp)).toBe(false);
+  });
+
   it('returns false for unsupported paths', () => {
     throwMocks();
     expect(expandShortPath('')).toBe(false);
     expect(expandShortPath('/foo/bar')).toBe(false);
     expect(expandShortPath('\\\\foo\\bar')).toBe(false);
+    expect(expandShortPath('foo\\bar')).toBe(false);
+    expect(expandShortPath('.\\foo\\bar')).toBe(false);
   });
 
   it('does no extra calculations for long paths', () => {
     throwMocks();
+    expect(expandShortPath('C:\\')).toBe('C:\\');
     expect(expandShortPath(paths.longTemp)).toBe(paths.longTemp);
   });
 
@@ -189,7 +198,10 @@ describe('expandShortPath', () => {
       expect(fs.existsSync(shortPath)).toBe(true);
 
       const spawnSpy = jest.spyOn(child_process, 'spawnSync');
-      expect(expandShortPath(shortPath)).toBe(longPath);
+      const expanded = expandShortPath(shortPath);
+      expect(expanded).toBeTruthy();
+      expect(expanded).not.toMatch(/~/);
+      expect(fs.statSync(String(expanded)).ino).toBe(fs.statSync(longPath).ino);
       expect(spawnSpy).toHaveBeenCalled();
     });
   });

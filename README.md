@@ -2,29 +2,6 @@
 
 Normalize the value returned from `os.tmpdir()` to eliminate OS-specific symlinks and naming variations. This is mainly useful in tests that rely on path comparisons.
 
-## Usage
-
-```js
-import { normalizedTmpdir } from 'normalized-tmpdir';
-
-const tmpdir = normalizedTmpdir(/*options*/);
-```
-
-The function accepts an options object:
-
-- `console?: boolean | { warn: typeof console['warn'] }`: By default, the library does not log warnings if normalization fails. If this option is true, log warnings to the default console. If a console object is provided, use it for logging.
-
-### With Jest console mocks
-
-If you have Jest tests that mock the console methods, but you want errors from `normalizedTmpdir` to display anyway (for easier debugging), you can do the following:
-
-```js
-import { normalizedTmpdir } from 'normalized-tmpdir';
-import realConsole from 'console';
-
-const tmpdir = normalizedTmpdir({ console: realConsole });
-```
-
 ## Currently-handled issues
 
 ### Mac
@@ -42,3 +19,46 @@ Node doesn't have an API to convert between short and long names. There are [var
 - If the only short segment is the user directory name, replace it with the path from `os.homedir()` (as long as it's the same directory and not a short name).
 
 This package currently tries the `os.homedir()` workaround first (since it doesn't require spawning a process), and tries iterating through path segments and calling `attrib.exe` as a fallback.
+
+## API
+
+### `normalizedTmpdir(options?): string`
+
+Return a normalized version of `os.tmpdir()`.
+
+```js
+import { normalizedTmpdir } from 'normalized-tmpdir';
+
+const tmpdir = normalizedTmpdir();
+```
+
+The function accepts an options object:
+
+- `console?: boolean | { warn: typeof console['warn'] }`: By default, the library does not log warnings if normalization fails. If this option is true, log warnings to the default console. If a console object is provided, use it for logging.
+
+#### Example: Using with Jest console mocks
+
+If you have Jest tests that mock the console methods, but you want errors from `normalizedTmpdir` to display anyway (for easier debugging), you can do the following:
+
+```js
+import { normalizedTmpdir } from 'normalized-tmpdir';
+import realConsole from 'console';
+
+const tmpdir = normalizedTmpdir({ console: realConsole });
+```
+
+### `expandShortPath(shortPath: string): string | false`
+
+**On Windows only**: expand an _absolute_ path with short (8.3) segments to a long path. If the user name is the only short segment, and `shortPath` is under `os.homedir()` (which must not include any short segments), uses `os.homedir()` as a replacement for the short part. Otherwise, expands each short segment of the path using `attrib.exe`.
+
+Returns the expanded path, or false if not on Windows, it's an unsupported type of path, or there's an error expanding any of the segments.
+
+```js
+import os from 'os';
+import { expandShortPath } from 'normalized-tmpdir';
+
+if (os.platform() === 'win32') {
+  // Example: expand a short path to C:\Users\VeryLongName
+  const longPath = expandShortPath('C:\\Users\\VERYLO~1');
+}
+```

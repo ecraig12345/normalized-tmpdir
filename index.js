@@ -17,16 +17,17 @@ function clearCache() {
 }
 
 /**
- * Expand a Windows path with short (8.3) segments to a long path. If the user name is the only
- * short segment, and `shortPath` is under `os.homedir()` (which must not be a short path), uses
- * `os.homedir()` to expand the path. Otherwise, uses `attrib.exe` to expand the path.
- * Returns false if there's an error processing any of the segments, or for network paths.
- * @param {string} shortPath
- * @returns {string | false}
+ * Supported on Windows only: expand an absolute path with short (8.3) segments to a long path.
+ * If the user name is the only short segment, and `shortPath` is under `os.homedir()` (which must
+ * not include any short segments), uses `os.homedir()` as a replacement for the short part.
+ * Otherwise, expands each short segment of the path using `attrib.exe`.
+ * @param {string} shortPath Absolute Windows path, possibly with one or more short (8.3) segments
+ * @returns {string | false} Returns the expanded path, or false if not on Windows, it's an
+ * unsupported type of path, or there's an error expanding any of the segments.
  */
 function expandShortPath(shortPath) {
-  if (!/^[a-z]:\\/i.test(shortPath)) {
-    return false; // possibly a network path
+  if (os.platform() !== 'win32' || !/^[a-z]:\\/i.test(shortPath)) {
+    return false; // wrong platform, or possibly a network, relative, or non-Windows path
   }
   if (!shortPath.includes('~')) {
     return shortPath; // not actually a short path

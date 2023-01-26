@@ -14,11 +14,12 @@ export interface NormalizedTmpdirOptions {
 export function normalizedTmpdir(options?: NormalizedTmpdirOptions): string;
 
 /**
- * Expand a Windows path with short (8.3) segments to a long path. If the user name is the only
- * short segment, and `shortPath` is under `os.homedir()` (which must not be a short path), uses
- * `os.homedir()` to expand the path. Otherwise, uses `attrib.exe` to expand the path.
- * @param shortPath The path to expand
- * @returns The expanded path if successful, or false if there's an error processing any of
- * the segments (or for network paths).
+ * Supported on Windows only: expand an absolute path with short (8.3) segments to a long path.
+ * If the user name is the only short segment, and `shortPath` is under `os.homedir()` (which must
+ * not include any short segments), uses `os.homedir()` as a replacement for the short part.
+ * Otherwise, expands each short segment of the path using `attrib.exe`.
+ * @param shortPath Absolute Windows path, possibly with one or more short (8.3) segments
+ * @returns Returns the expanded path, or false if not on Windows, it's an unsupported type of path,
+ * or there's an error expanding any of the segments.
  */
 export function expandShortPath(shortPath: string): string | false;
