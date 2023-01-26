@@ -9,6 +9,14 @@
     "temp"
   ],
   "author": "Elizabeth Craig <elcraig@microsoft.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ecraig12345/normalized-tmpdir.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ecraig12345/normalized-tmpdir/issues"
+  },
+  "homepage": "https://github.com/ecraig12345/normalized-tmpdir#readme",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
