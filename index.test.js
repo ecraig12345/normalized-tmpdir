@@ -3,7 +3,6 @@ const child_process = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const rimraf = require('rimraf').sync;
 
 const { expandShortPath, normalizedTmpdir, clearCache } =
   /** @type {import('./index.d') & { clearCache: () => void }} */ (require('./index'));
@@ -165,11 +164,11 @@ describe('expandShortPath', () => {
     });
 
     afterAll(() => {
-      rimraf(testRoot);
+      fs.rmSync(testRoot, { recursive: true });
     });
 
     afterEach(() => {
-      tempDirs.forEach((dir) => rimraf(dir));
+      tempDirs.forEach((dir) => fs.rmSync(dir, { recursive: true }));
       tempDirs = [];
     });
 
