@@ -4,6 +4,8 @@
   "assignees": ["ecraig12345"],
   "dependencyDashboard": true,
   "labels": ["renovate"],
+  "postUpdateOptions": ["yarnDedupeFewer"],
+  "semanticCommits": "disabled",
 
   "packageRules": [
     {
