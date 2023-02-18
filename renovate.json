@@ -7,8 +7,7 @@
 
   "packageRules": [
     {
-      "groupName": "devDependency updates",
-      "commitMessageTopic": "devDependencies",
+      "groupName": "devDependencies",
       "matchDepTypes": ["devDependencies"],
       "schedule": ["before 3am on the first day of the month"]
     }
