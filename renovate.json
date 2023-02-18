@@ -1,11 +1,22 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
 
-  "assignees": ["ecraig12345"],
+  "extends": [
+    ":ignoreModulesAndTests",
+    "workarounds:all",
+    "github>microsoft/m365-renovate-config:restrictNode(14)"
+  ],
+
   "dependencyDashboard": true,
   "labels": ["renovate"],
+  "printConfig": true,
   "postUpdateOptions": ["yarnDedupeFewer"],
+  "rangeStrategy": "auto",
   "semanticCommits": "disabled",
+  "timezone": "America/Los_Angeles",
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
 
   "packageRules": [
     {
