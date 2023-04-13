@@ -174,7 +174,7 @@ describe('expandShortPath', () => {
 
     // test home directory expansion for real if possible
     console.log('homedir', os.homedir());
-    console.log('tempdir', os.tempdir());
+    console.log('tmpdir', os.tmpdir());
 
     (/^[a-z]:\\Users\\[^~\\]{9,}$/.test(os.homedir()) ? it : it.skip)(
       'expands short home directory',
