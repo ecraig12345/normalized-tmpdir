@@ -176,13 +176,13 @@ describe('expandShortPath', () => {
     console.log('homedir', os.homedir());
     console.log('tmpdir', os.tmpdir());
 
-    (/^[a-z]:\\Users\\[^~\\]{9,}$/.test(os.homedir()) ? it : it.skip)(
+    (/^[a-z]:\\Users\\[^~\\]{9,}$/i.test(os.homedir()) ? it : it.skip)(
       'expands short home directory',
       () => {
         const spawnSpy = jest.spyOn(child_process, 'spawnSync');
         const shortName = getShortName(os.homedir());
         expect(shortName).toMatch(/~/);
-        expect(expandShortPath(shortName)).toBe(os.homedir());
+        expect(expandShortPath(shortName).toLowerCase()).toBe(os.homedir().toLowerCase());
         expect(spawnSpy).not.toHaveBeenCalled();
       }
     );
