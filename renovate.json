@@ -4,6 +4,7 @@
   "extends": [
     ":ignoreModulesAndTests",
     "workarounds:all",
+    "github>microsoft/m365-renovate-config:groupNodeMajor",
     "github>microsoft/m365-renovate-config:restrictNode(16)"
   ],
 
