@@ -182,7 +182,10 @@ describe('expandShortPath', () => {
         const spawnSpy = jest.spyOn(child_process, 'spawnSync');
         const shortName = getShortName(os.homedir());
         expect(shortName).toMatch(/~/);
-        expect(expandShortPath(shortName).toLowerCase()).toBe(os.homedir().toLowerCase());
+
+        const expanded = expandShortPath(shortName);
+        expect(expanded).not.toBe(false);
+        expect(/** @type {string} */ (expanded).toLowerCase()).toBe(os.homedir().toLowerCase());
         expect(spawnSpy).not.toHaveBeenCalled();
       }
     );
