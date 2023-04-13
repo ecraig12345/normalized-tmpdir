@@ -4,7 +4,7 @@
   "extends": [
     ":ignoreModulesAndTests",
     "workarounds:all",
-    "github>microsoft/m365-renovate-config:restrictNode(14)"
+    "github>microsoft/m365-renovate-config:restrictNode(16)"
   ],
 
   "dependencyDashboard": true,

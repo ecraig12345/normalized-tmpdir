@@ -58,35 +58,37 @@ function expandShortPath(shortPath) {
   // attributes, it also appears to always expand the last path segment into a long path.
   const segments = shortPath.split('\\');
   for (let i = 1; i < segments.length; i++) {
-    if (segments[i].includes('~')) {
-      try {
-        // Given input like C:\Users\VERYLO~1, attrib returns output like:
-        //                    C:\Users\verylongusername
-        // (possibly with one or more letters at the start indicating file/dir attributes)
-        // But it will only expand the last segment in the path, so we need to iterate through.
-        const partialShortPath = segments.slice(0, i + 1).join('\\');
-        const attribResult = child_process
-          .spawnSync('attrib.exe', [partialShortPath])
-          .stdout.toString()
-          .trim();
+    if (!segments[i].includes('~')) {
+      continue;
+    }
 
-        // attrib doesn't exit with an error code for bad paths, so check for errors like:
-        // File not found - C:\badname
-        const expandedMatch = attribResult.match(/(?<!- )[a-z]:\\.*/i);
+    try {
+      // Given input like C:\Users\VERYLO~1, attrib returns output like:
+      //                    C:\Users\verylongusername
+      // (possibly with one or more letters at the start indicating file/dir attributes)
+      // But it will only expand the last segment in the path, so we need to iterate through.
+      const partialShortPath = segments.slice(0, i + 1).join('\\');
+      const attribResult = child_process
+        .spawnSync('attrib.exe', [partialShortPath])
+        .stdout.toString()
+        .trim();
 
-        if (
-          expandedMatch &&
-          path.dirname(expandedMatch[0].toLowerCase()) ===
-            path.dirname(partialShortPath.toLowerCase())
-        ) {
-          segments[i] = path.basename(expandedMatch[0]);
-        } else {
-          // Bail on any issues to avoid inaccurate results
-          return false;
-        }
-      } catch (err) {
+      // attrib doesn't exit with an error code for bad paths, so check for errors like:
+      // File not found - C:\badname
+      const expandedMatch = attribResult.match(/(?<!- )[a-z]:\\.*/i);
+
+      if (
+        expandedMatch &&
+        path.dirname(expandedMatch[0].toLowerCase()) ===
+          path.dirname(partialShortPath.toLowerCase())
+      ) {
+        segments[i] = path.basename(expandedMatch[0]);
+      } else {
+        // Bail on any issues to avoid inaccurate results
         return false;
       }
+    } catch (err) {
+      return false;
     }
   }
 
