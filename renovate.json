@@ -25,6 +25,10 @@
       "matchDepTypes": ["devDependencies"],
       "excludePackageNames": ["@types/node"],
       "schedule": ["before 3am on the first day of the month"]
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "commitMessageTopic": "devDependency {{{depName}}}"
     }
   ]
 }
