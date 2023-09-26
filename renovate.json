@@ -5,14 +5,13 @@
     ":ignoreModulesAndTests",
     "workarounds:all",
     "github>microsoft/m365-renovate-config:groupNodeMajor",
+    "github>microsoft/m365-renovate-config:keepFresh",
     "github>microsoft/m365-renovate-config:restrictNode(16)"
   ],
 
   "dependencyDashboard": true,
   "labels": ["renovate"],
   "printConfig": true,
-  "postUpdateOptions": ["yarnDedupeFewer"],
-  "rangeStrategy": "auto",
   "semanticCommits": "disabled",
   "timezone": "America/Los_Angeles",
   "vulnerabilityAlerts": {
