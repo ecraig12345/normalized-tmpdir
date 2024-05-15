@@ -1,11 +1,13 @@
 name: Release
 
+# TOKENS HAVE BEEN REMOVED
+
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  # workflow_run:
+  #   workflows: [CI]
+  #   types: [completed]
+  #   branches: [main]
 
 concurrency:
   group: ${{ github.ref }}-release
@@ -39,6 +41,6 @@ jobs:
           publish: yarn release
           commit: Bump package version
           title: Bump package version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
