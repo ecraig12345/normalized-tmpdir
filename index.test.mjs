@@ -1,8 +1,8 @@
-const { describe, it, jest, afterEach, expect, beforeAll, afterAll } = require('@jest/globals');
-const child_process = require('child_process');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
+import { describe, it, vi, afterEach, expect, beforeAll, afterAll } from 'vitest';
+import child_process from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const { expandShortPath, normalizedTmpdir, clearCache } =
   /** @type {import('./index.d') & { clearCache: () => void }} */ (require('./index'));
@@ -30,25 +30,25 @@ const attribResult = (/** @type {string} */ str) =>
 function windowsMocks() {
   if (os.platform() !== 'win32') {
     // mocking these on windows causes an infinite loop
-    jest.spyOn(path, 'dirname').mockImplementation(path.win32.dirname);
-    jest.spyOn(path, 'basename').mockImplementation(path.win32.basename);
+    vi.spyOn(path, 'dirname').mockImplementation(path.win32.dirname);
+    vi.spyOn(path, 'basename').mockImplementation(path.win32.basename);
   }
 
   return {
-    spawnSync: jest.spyOn(child_process, 'spawnSync').mockImplementation(throwError),
-    existsSync: jest.spyOn(fs, 'existsSync').mockImplementation(() => true),
-    realpathSync: jest.spyOn(fs, 'realpathSync').mockImplementation(noOp),
-    statSync: jest.spyOn(fs, 'statSync').mockImplementation(() => /** @type {*} */ ({ ino: 1 })),
-    homedir: jest.spyOn(os, 'homedir').mockImplementation(() => paths.homeDir),
-    platform: jest.spyOn(os, 'platform').mockImplementation(() => 'win32'),
-    tmpdir: jest.spyOn(os, 'tmpdir').mockImplementation(() => paths.shortTemp),
+    spawnSync: vi.spyOn(child_process, 'spawnSync').mockImplementation(throwError),
+    existsSync: vi.spyOn(fs, 'existsSync').mockImplementation(() => true),
+    realpathSync: vi.spyOn(fs, 'realpathSync').mockImplementation(noOp),
+    statSync: vi.spyOn(fs, 'statSync').mockImplementation(() => /** @type {*} */ ({ ino: 1 })),
+    homedir: vi.spyOn(os, 'homedir').mockImplementation(() => paths.homeDir),
+    platform: vi.spyOn(os, 'platform').mockImplementation(() => 'win32'),
+    tmpdir: vi.spyOn(os, 'tmpdir').mockImplementation(() => paths.shortTemp),
   };
 }
 
 function throwMocks() {
   const mocks = windowsMocks();
   Object.values(mocks).forEach((mock) => mock.mockImplementation(throwError));
-  jest.spyOn(os, 'platform').mockImplementation(() => 'win32');
+  vi.spyOn(os, 'platform').mockImplementation(() => 'win32');
 }
 
 /** Windows only: get the actual short name of a file/directory */
@@ -64,12 +64,12 @@ function getShortName(/** @type {string} */ dir) {
 
 describe('expandShortPath', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('returns false for non-windows platforms', () => {
     throwMocks();
-    jest.spyOn(os, 'platform').mockImplementation(() => 'linux');
+    vi.spyOn(os, 'platform').mockImplementation(() => 'linux');
     expect(expandShortPath(paths.shortTemp)).toBe(false);
   });
 
@@ -182,7 +182,7 @@ describe('expandShortPath', () => {
         const shortName = getShortName(os.homedir());
         expect(shortName).toMatch(/~/);
 
-        const spawnSpy = jest.spyOn(child_process, 'spawnSync');
+        const spawnSpy = vi.spyOn(child_process, 'spawnSync');
         const expanded = expandShortPath(shortName);
         expect(expanded).not.toBe(false);
         expect(/** @type {string} */ (expanded).toLowerCase()).toBe(os.homedir().toLowerCase());
@@ -202,7 +202,7 @@ describe('expandShortPath', () => {
       fs.mkdirSync(longPath);
       expect(fs.existsSync(shortPath)).toBe(true);
 
-      const spawnSpy = jest.spyOn(child_process, 'spawnSync');
+      const spawnSpy = vi.spyOn(child_process, 'spawnSync');
       const expanded = expandShortPath(shortPath);
       expect(expanded).toBeTruthy();
       expect(expanded).not.toMatch(/~/);
@@ -215,7 +215,7 @@ describe('expandShortPath', () => {
 describe('normalizedTmpdir', function () {
   afterEach(() => {
     clearCache();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('returns a real path', () => {
@@ -261,7 +261,7 @@ describe('normalizedTmpdir', function () {
   });
 
   it('on failure, does not log by default', () => {
-    const logSpy = jest.spyOn(console, 'warn').mockImplementation(noOp);
+    const logSpy = vi.spyOn(console, 'warn').mockImplementation(noOp);
     const mocks = windowsMocks();
     // cause homedir comparison to fail
     mocks.statSync.mockImplementationOnce(() => /** @type {*} */ ({ ino: 2 }));
@@ -272,7 +272,7 @@ describe('normalizedTmpdir', function () {
   });
 
   it('on failure, logs to default console if console: true', () => {
-    const logSpy = jest.spyOn(console, 'warn').mockImplementation(noOp);
+    const logSpy = vi.spyOn(console, 'warn').mockImplementation(noOp);
     const mocks = windowsMocks();
     mocks.statSync.mockImplementationOnce(() => /** @type {*} */ ({ ino: 2 }));
 
@@ -282,7 +282,7 @@ describe('normalizedTmpdir', function () {
   });
 
   it('on failure, logs to provided console', () => {
-    const mockLog = jest.fn();
+    const mockLog = vi.fn();
     const mocks = windowsMocks();
     mocks.statSync.mockImplementationOnce(() => /** @type {*} */ ({ ino: 2 }));
 
