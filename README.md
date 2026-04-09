@@ -1,4 +1,4 @@
-# normalized-tmpdir - repo has moved to https://github.com/microsoft/lage/tree/main/packages/normalized-tmpdir
+# normalized-tmpdir - moved to https://github.com/microsoft/lage/tree/main/packages/normalized-tmpdir
 
 Normalize the value returned from `os.tmpdir()` to eliminate OS-specific symlinks and naming variations. This is mainly useful in tests that rely on path comparisons.
 
